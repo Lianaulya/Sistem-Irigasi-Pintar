@@ -50,8 +50,9 @@ void loop() {
   sensorValue = analogRead(sensorPin);
   
   // Konversi ADC ke persen kelembapan (0-100%)
-  // Semakin tinggi ADC = semakin kering
-  input = map(sensorValue, ADC_DRY, ADC_WET, 0, 100);
+  // ADC tinggi (kering) = kelembapan rendah (0%)
+  // ADC rendah (basah) = kelembapan tinggi (100%)
+  input = map(sensorValue, ADC_DRY, ADC_WET, 100, 0);
   input = constrain(input, 0, 100);
   
   // Compute PID
@@ -66,9 +67,9 @@ void loop() {
   Serial.print(output);
   Serial.print(" | Pump: ");
   
-  // Kontrol pompa berdasarkan output PID
-  // Kalau output > 50, pompa nyala (tanah terlalu kering)
-  if (output > 50) {
+  // Kontrol pompa berdasarkan output PID dengan proteksi
+  // Kalau output > 50 DAN kelembapan < 70%, pompa nyala
+  if (output > 50 && input < 70) {
     digitalWrite(relayPin, RELAY_ON);
     Serial.println("ON");
   } else {
@@ -76,6 +77,6 @@ void loop() {
     Serial.println("OFF");
   }
   
-  // Tunggu 1 detik sebelum pembacaan berikutnya
-  delay(1000);
+  // Tunggu 2 detik untuk memberi jeda lebih lama
+  delay(2000);
 }
